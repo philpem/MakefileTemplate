@@ -1,11 +1,11 @@
 # Phil's multiplatform makefile template
 # With auto-incrementing build number and automatic version.h generation
-# Version 1.6, 2009-10-26
+# Version 1.7, 2010-02-10
 #
 # The latest version of this Makefile can be found at http://www.philpem.me.uk/
 #
 #
-# Copyright (c) 2009 Philip Pemberton <code@philpem.me.uk>
+# Copyright (c) 2010 Philip Pemberton <code@philpem.me.uk>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -84,6 +84,8 @@
 #
 #
 # Change history:
+#   1.7 - Now creates a basic Hgignore file and directory keepers for the
+#         dep and obj directories.
 #   1.6 - Added CFLAGS and CXXFLAGS to the command-lines for the dependency
 #         building commands. This was causing issues with C99 / C++0x mode.
 #   1.5 - Added support for Mercurial revision (changeset ID) display
@@ -307,7 +309,14 @@ clean-versioninfo:
 # initialise the build system for a new project
 init:
 	@mkdir -p src dep obj
+	@echo "This file is a directory-keeper. Do not delete it." > dep/.keepme
+	@echo "This file is a directory-keeper. Do not delete it." > obj/.keepme
 	@echo 0 > .buildnum
+	@echo 'syntax: glob' > .hgignore
+	@echo 'obj/*.o' >> .hgignore
+	@echo 'dep/*.d' >> .hgignore
+	@echo '*~' >> .hgignore
+	@echo '.*.sw?' >> .hgignore
 	@echo '#define VER_COMPILE_DATE	"@@date@@"'				> src/version.h.in
 	@echo '#define VER_COMPILE_TIME	"@@time@@"'				>> src/version.h.in
 	@echo '#define VER_COMPILE_BY		"@@whoami@@"'		>> src/version.h.in
