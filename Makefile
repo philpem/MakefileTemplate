@@ -1,6 +1,6 @@
 # Phil's multiplatform makefile template
 # With auto-incrementing build number and automatic version.h generation
-# Version 1.7, 2010-02-10
+# Version 1.8, 2010-02-15
 #
 # The latest version of this Makefile can be found at http://www.philpem.me.uk/
 #
@@ -84,6 +84,8 @@
 #
 #
 # Change history:
+#   1.8 - Now supports the use of the wxWidgets GUI framework. To turn
+#         this on, set ENABLE_WX to "yes".
 #   1.7 - Now creates a basic Hgignore file and directory keepers for the
 #         dep and obj directories.
 #   1.6 - Added CFLAGS and CXXFLAGS to the command-lines for the dependency
@@ -135,6 +137,10 @@ GARBAGE		=
 # that are required for building the application; e.g. object files or
 # libraries in sub or parent directories
 EXTDEP		=
+
+# Extra libraries
+# wxWidgets: set to "yes" to enable, anything else to disable
+ENABLE_WX	=	no
 
 ####
 # Win32 target-specific settings
@@ -244,6 +250,27 @@ else
 endif
 
 ####
+# wxWidgets support
+####
+ifeq ($(ENABLE_WX),yes)
+	ifeq ($(BUILD_TYPE),debug)
+		LIBLNK		+=	`wx-config --debug --libs`
+		CFLAGS		+=	`wx-config --debug --cflags`
+		CXXFLAGS	+=	`wx-config --debug --cxxflags`
+		CPPFLAGS	+=	`wx-config --debug --cppflags`
+	else
+		ifeq ($(BUILD_TYPE),release)
+			LIBLNK		+=	`wx-config --libs`
+			CFLAGS		+=	`wx-config --cflags`
+			CPPFLAGS	+=	`wx-config --cppflags`
+			CXXFLAGS	+=	`wx-config --cxxflags`
+		else
+			$(error Unsupported build type: '$(BUILD_TYPE)')
+		endif
+	endif
+endif
+
+####
 # rules
 ####
 
@@ -254,9 +281,9 @@ OBJ		=	$(addprefix obj/, $(addsuffix .o, $(basename $(SRC))) $(EXT_OBJ)) $(addsu
 DEPFILES =	$(addprefix dep/, $(addsuffix .d, $(basename $(SRC))) $(EXT_OBJ)) $(addsuffix .d, $(basename $(EXTSRC)))
 
 # path commands
-LIBLNK	=	$(addprefix -l, $(LIB))
-LIBPTH	=	$(addprefix -L, $(LIBPATH))
-INCPTH	=	$(addprefix -I, $(INCPATH))
+LIBLNK	+=	$(addprefix -l, $(LIB))
+LIBPTH	+=	$(addprefix -L, $(LIBPATH))
+INCPTH	+=	$(addprefix -I, $(INCPATH))
 
 CPPFLAGS +=	$(INCPTH)
 
