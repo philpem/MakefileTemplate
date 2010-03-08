@@ -238,8 +238,8 @@ endif
 # Build-type specific configuration
 ####
 ifeq ($(BUILD_TYPE),debug)
-	CFLAGS		+= -g -ggdb
-	CXXFLAGS	+= -g -ggdb
+	CFLAGS		+= -g -ggdb -DDEBUG
+	CXXFLAGS	+= -g -ggdb -DDEBUG
 else
  ifeq ($(BUILD_TYPE),release)
 	CFLAGS		+= -O2
