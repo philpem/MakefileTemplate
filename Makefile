@@ -141,6 +141,8 @@ EXTDEP		=
 # Extra libraries
 # wxWidgets: set to "yes" to enable, anything else to disable
 ENABLE_WX	=	no
+# wxWidgets: list of wxWidgets libraries to enable
+WX_LIBS		=	std
 
 ####
 # Win32 target-specific settings
@@ -254,16 +256,16 @@ endif
 ####
 ifeq ($(ENABLE_WX),yes)
 	ifeq ($(BUILD_TYPE),debug)
-		LIBLNK		+=	`wx-config --debug --libs`
-		CFLAGS		+=	`wx-config --debug --cflags`
-		CXXFLAGS	+=	`wx-config --debug --cxxflags`
-		CPPFLAGS	+=	`wx-config --debug --cppflags`
+		LIBLNK		+=	`wx-config --debug --libs $(WX_LIBS)`
+		CFLAGS		+=	`wx-config --debug --cflags $(WX_LIBS)`
+		CXXFLAGS	+=	`wx-config --debug --cxxflags $(WX_LIBS)`
+		CPPFLAGS	+=	`wx-config --debug --cppflags $(WX_LIBS)`
 	else
 		ifeq ($(BUILD_TYPE),release)
-			LIBLNK		+=	`wx-config --libs`
-			CFLAGS		+=	`wx-config --cflags`
-			CPPFLAGS	+=	`wx-config --cppflags`
-			CXXFLAGS	+=	`wx-config --cxxflags`
+			LIBLNK		+=	`wx-config --libs $(WX_LIBS)`
+			CFLAGS		+=	`wx-config --cflags $(WX_LIBS)`
+			CPPFLAGS	+=	`wx-config --cppflags $(WX_LIBS)`
+			CXXFLAGS	+=	`wx-config --cxxflags $(WX_LIBS)`
 		else
 			$(error Unsupported build type: '$(BUILD_TYPE)')
 		endif
