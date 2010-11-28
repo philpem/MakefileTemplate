@@ -359,22 +359,22 @@ init:
 	@echo '*~' >> .hgignore
 	@echo '.*.sw?' >> .hgignore
 	@echo '#define VER_COMPILE_DATETIME	"@@datetime@@"'			> src/version.h.in
-	@echo '#define VER_COMPILE_DATE	"@@date@@"'				>> src/version.h.in
-	@echo '#define VER_COMPILE_TIME	"@@time@@"'				>> src/version.h.in
-	@echo '#define VER_COMPILE_BY		"@@whoami@@"'		>> src/version.h.in
-	@echo '#define VER_COMPILE_HOST	"@@hostname@@"'			>> src/version.h.in
-	@echo '#define VER_COMPILER		"@@compiler@@"'			>> src/version.h.in
-	@echo '#define VER_BUILD_TYPE		"@@buildtype@@"'	>> src/version.h.in
-	@echo '#define VER_CFLAGS			"@@cflags@@"'		>> src/version.h.in
-	@echo ''												>> src/version.h.in
-	@echo '#define VER_MAJOR			@@majorver@@'		>> src/version.h.in
-	@echo '#define VER_MINOR			@@minorver@@'		>> src/version.h.in
-	@echo '#define VER_BUILDNUM		@@buildnum@@'			>> src/version.h.in
-	@echo '#define VER_EXTRA			"@@extraver@@"'		>> src/version.h.in
-	@echo '#define VER_VCSREV			"@@vcsstr@@"'		>> src/version.h.in
-	@echo ''												>> src/version.h.in
-	@echo '#define VER_FULLSTR			"@@fullverstr@@"'	>> src/version.h.in
-	@echo ''												>> src/version.h.in
+	@echo '#define VER_COMPILE_DATE		"@@date@@"'				>> src/version.h.in
+	@echo '#define VER_COMPILE_TIME		"@@time@@"'				>> src/version.h.in
+	@echo '#define VER_COMPILE_BY			"@@whoami@@"'		>> src/version.h.in
+	@echo '#define VER_COMPILE_HOST		"@@hostname@@"'			>> src/version.h.in
+	@echo '#define VER_COMPILER			"@@compiler@@"'			>> src/version.h.in
+	@echo '#define VER_BUILD_TYPE			"@@buildtype@@"'	>> src/version.h.in
+	@echo '#define VER_CFLAGS				"@@cflags@@"'		>> src/version.h.in
+	@echo ''													>> src/version.h.in
+	@echo '#define VER_MAJOR				@@majorver@@'		>> src/version.h.in
+	@echo '#define VER_MINOR				@@minorver@@'		>> src/version.h.in
+	@echo '#define VER_BUILDNUM			@@buildnum@@'			>> src/version.h.in
+	@echo '#define VER_EXTRA				"@@extraver@@"'		>> src/version.h.in
+	@echo '#define VER_VCSREV				"@@vcsstr@@"'		>> src/version.h.in
+	@echo ''													>> src/version.h.in
+	@echo '#define VER_FULLSTR				"@@fullverstr@@"'	>> src/version.h.in
+	@echo ''													>> src/version.h.in
 	@echo Build system initialised
 
 # remove the dependency files
