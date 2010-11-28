@@ -1,6 +1,6 @@
 # Phil's multiplatform makefile template
 # With auto-incrementing build number and automatic version.h generation
-# Version 1.8, 2010-02-15
+# Version 1.9, 2010-02-15
 #
 # The latest version of this Makefile can be found at http://www.philpem.me.uk/
 #
@@ -84,6 +84,9 @@
 #
 #
 # Change history:
+#   1.9 - Bugfix -- if CFLAGS contained a forward-slash, sed would fall over.
+#         Also added SDL support and fixed the date/time formats. To use SDL,
+#         set ENABLE_SDL to "yes".
 #   1.8 - Now supports the use of the wxWidgets GUI framework. To turn
 #         this on, set ENABLE_WX to "yes".
 #   1.7 - Now creates a basic Hgignore file and directory keepers for the
