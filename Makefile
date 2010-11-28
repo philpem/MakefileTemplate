@@ -143,6 +143,8 @@ EXTDEP		=
 ENABLE_WX	=	no
 # wxWidgets: list of wxWidgets libraries to enable
 WX_LIBS		=	std
+# SDL: set to "yes" to enable, anything else to disable
+ENABLE_SDL	=	no
 
 ####
 # Win32 target-specific settings
@@ -273,6 +275,15 @@ ifeq ($(ENABLE_WX),yes)
 endif
 
 ####
+# SDL support
+####
+ifeq ($(ENABLE_SDL),yes)
+	LIBLNK		+=	$(shell sdl-config --libs)
+	CFLAGS		+=	$(shell sdl-config --cflags)
+endif
+
+
+####
 # rules
 ####
 
@@ -311,8 +322,9 @@ update-revision:
 	@echo $(NEWBUILD) > .buildnum
 
 versionheader:
-	@sed -e 's/@@date@@/$(shell LC_ALL=C date)/g'			\
-		 -e 's/@@time@@/$(shell LC_ALL=C date +%T)/g'		\
+	@sed -e 's/@@datetime@@/$(shell LC_ALL=C date +"%a %d-%b-%Y %T %Z")/g'		\
+		 -e 's/@@date@@/$(shell LC_ALL=C date +"%a %d-%b-%Y")/g'			\
+		 -e 's/@@time@@/$(shell LC_ALL=C date +"%T %Z")/g'		\
 		 -e 's/@@whoami@@/$(shell whoami)/g'				\
 		 -e 's/@@hostname@@/$(shell hostname)/g'			\
 		 -e 's|@@compiler@@|$(shell $(CC) $(CFLAGS) -v 2>&1 | tail -n 1 | sed -e "s;|;/;")|g'	\
@@ -325,7 +337,7 @@ versionheader:
 		 -e 's/@@vcsrev@@/$(VER_VCSREV)/g'					\
 		 -e 's/@@vcsstr@@/$(VER_VCSSTR)/g'					\
 		 -e 's/@@fullverstr@@/$(VER_FULLSTR)/g'				\
-		 -e 's/@@cflags@@/$(CFLAGS)/g'						\
+		 -e 's#@@cflags@@#$(CFLAGS)#g'						\
 		 < src/version.h.in > src/version.h
 
 # version.h creation stuff based on code from the Xen makefile
@@ -346,7 +358,8 @@ init:
 	@echo 'dep/*.d' >> .hgignore
 	@echo '*~' >> .hgignore
 	@echo '.*.sw?' >> .hgignore
-	@echo '#define VER_COMPILE_DATE	"@@date@@"'				> src/version.h.in
+	@echo '#define VER_COMPILE_DATETIME	"@@datetime@@"'			> src/version.h.in
+	@echo '#define VER_COMPILE_DATE	"@@date@@"'				>> src/version.h.in
 	@echo '#define VER_COMPILE_TIME	"@@time@@"'				>> src/version.h.in
 	@echo '#define VER_COMPILE_BY		"@@whoami@@"'		>> src/version.h.in
 	@echo '#define VER_COMPILE_HOST	"@@hostname@@"'			>> src/version.h.in
