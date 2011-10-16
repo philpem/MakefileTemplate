@@ -1,6 +1,6 @@
 # Phil's multiplatform makefile template
 # With auto-incrementing build number and automatic version.h generation
-# Version 1.9, 2010-02-15
+# Version 1.10, 2010-02-15
 #
 # The latest version of this Makefile can be found at http://www.philpem.me.uk/
 #
@@ -64,10 +64,11 @@
 #               and the target is fed through strip to remove redundant
 #               data.
 #
-# The PLATFORM variable contains the current target platform. There are two
-# supported platforms:
+# The PLATFORM variable contains the current target platform. There are currently
+# three supported platforms:
 #   linux       GNU/Linux with GNU Compiler Collection
 #   win32       Windows 32-bit with MinGW
+#   osx         Mac OS X
 #
 # The EXTSRC variable is used to specify other files to build. It is typically
 # used to specify platform or build-type specific source files, e.g.
@@ -84,6 +85,13 @@
 #
 #
 # Change history:
+#   1.10- Add Mac OS X build support
+#         Add automatic build platform identification
+#         Bugfix -- if .buildnum doesn't exist, use '0' for the build number
+#         Add ability to override wxWidgets build type from the command line
+#           (OVERRIDE_WX_USE_RELEASE=1 forces use of wxWidgets release
+#           libraries, even in debug mode).
+#         Add GTK+ and Cairo library support
 #   1.9 - Bugfix -- if CFLAGS contained a forward-slash, sed would fall over.
 #         Also added SDL support and fixed the date/time formats. To use SDL,
 #         set ENABLE_SDL to "yes".
@@ -97,6 +105,11 @@
 #         Fixed a few issues with Subversion support (svn: and version 0 would
 #         be displayed for exported code)
 #
+#
+# TODO list:
+#   - Add a 'make help' option which lists valid make targets, platforms etc.
+#   - Allow platform to be overridden (instead of using idplatform.sh)
+#
 
 ####
 # Build configuration
@@ -109,8 +122,8 @@ VER_MAJOR	= 0
 VER_MINOR	= 0
 VER_EXTRA	?= 
 
-# build platform: win32 or linux
-PLATFORM	?=	linux
+# build platform: win32, linux, osx
+PLATFORM	?=	$(shell ./idplatform.sh)
 # build type: release or debug
 BUILD_TYPE	?=	debug
 
@@ -142,12 +155,33 @@ GARBAGE		=
 EXTDEP		=
 
 # Extra libraries
-# wxWidgets: set to "yes" to enable, anything else to disable
+# Set any of these variables to "yes" to enable, or anything else to disable
+# wxWidgets
 ENABLE_WX	=	no
-# wxWidgets: list of wxWidgets libraries to enable
-WX_LIBS		=	std
+# GTK+ widget set
+ENABLE_GTK	=	no
+# Cairo graphics library
+ENABLE_CAIRO	=	no
 # SDL: set to "yes" to enable, anything else to disable
 ENABLE_SDL	=	no
+
+# wxWidgets: list of wxWidgets libraries to enable
+# Only valid if ENABLE_WX = yes
+WX_LIBS		=	std
+
+
+####
+# Tool setup
+####
+MAKE	:=	make
+CC		:=	gcc
+CXX		:=	g++
+CFLAGS	:=	-Wall -pedantic -std=gnu99 $(EXT_CFLAGS)
+CXXFLAGS:=	-Wall -pedantic -std=gnu++0x $(EXT_CXXFLAGS)
+LDFLAGS	:=	$(EXT_LDFLAGS)
+RM		:=	rm
+STRIP	:=	strip
+
 
 ####
 # Win32 target-specific settings
@@ -161,16 +195,13 @@ endif
 
 
 ####
-# Tool setup
+# OSX target-specific settings
 ####
-MAKE	=	make
-CC		=	gcc
-CXX		=	g++
-CFLAGS	=	-Wall -pedantic -std=gnu99 $(EXT_CFLAGS)
-CXXFLAGS=	-Wall -pedantic -std=gnu++0x $(EXT_CXXFLAGS)
-LDFLAGS	=	$(EXT_LDFLAGS)
-RM		=	rm
-STRIP	=	strip
+ifeq ($(PLATFORM),osx)
+CFLAGS	:=	-Wall -pedantic $(EXT_CFLAGS)
+CXXFLAGS:=	-Wall -pedantic -Wno-long-long $(EXT_CXXFLAGS)
+endif
+
 
 ###############################################################################
 # You should not need to touch anything below here, unless you're adding a new
@@ -182,7 +213,9 @@ STRIP	=	strip
 ####
 ifneq ($(PLATFORM),linux)
 ifneq ($(PLATFORM),win32)
-    $(error Platform '$(PLATFORM)' not supported. Supported platforms are: linux, win32)
+ifneq ($(PLATFORM),osx)
+    $(error Platform '$(PLATFORM)' is not supported. Supported platforms are: linux, win32, osx)
+endif
 endif
 endif
 
@@ -190,7 +223,7 @@ endif
 # Version info generation
 ####
 # get the current build number
-VER_BUILDNUM	= $(shell cat .buildnum)
+VER_BUILDNUM	= $(shell cat .buildnum||echo 0)
 
 #### --- begin Subversion revision grabber ---
 # there are two ways to get the SVN revision - use svnversion, or use svn info
@@ -260,13 +293,19 @@ endif
 # wxWidgets support
 ####
 ifeq ($(ENABLE_WX),yes)
-	ifeq ($(BUILD_TYPE),debug)
+	ifneq ($(OVERRIDE_WX_USE_RELEASE),)
+		WX_BUILD_TYPE := release
+	else
+		WX_BUILD_TYPE := $(BUILD_TYPE)
+	endif
+
+	ifeq ($(WX_BUILD_TYPE),debug)
 		LIBLNK		+=	`wx-config --debug --libs $(WX_LIBS)`
 		CFLAGS		+=	`wx-config --debug --cflags $(WX_LIBS)`
 		CXXFLAGS	+=	`wx-config --debug --cxxflags $(WX_LIBS)`
 		CPPFLAGS	+=	`wx-config --debug --cppflags $(WX_LIBS)`
 	else
-		ifeq ($(BUILD_TYPE),release)
+		ifeq ($(WX_BUILD_TYPE),release)
 			LIBLNK		+=	`wx-config --libs $(WX_LIBS)`
 			CFLAGS		+=	`wx-config --cflags $(WX_LIBS)`
 			CPPFLAGS	+=	`wx-config --cppflags $(WX_LIBS)`
@@ -285,6 +324,29 @@ ifeq ($(ENABLE_SDL),yes)
 	CFLAGS		+=	$(shell sdl-config --cflags)
 endif
 
+####
+# GTK support
+####
+ifeq ($(ENABLE_GTK),yes)
+	LIBLNK		+=	`pkg-config gtk+-2.0 --libs`
+	CFLAGS		+=	`pkg-config gtk+-2.0 --cflags`
+	CXXFLAGS	+=	`pkg-config gtk+-2.0 --cflags`
+endif
+
+####
+# Cairo support
+####
+ifeq ($(ENABLE_CAIRO),yes)
+    ifeq ($(PLATFORM),osx)
+		LIBLNK		+=	-L/usr/local/Cellar/cairo/1.10.2/lib -lcairo
+		CFLAGS		+=	-I/usr/local/Cellar/cairo/1.10.2/include/cairo
+		CXXFLAGS	+=	-I/usr/local/Cellar/cairo/1.10.2/include/cairo
+    else
+		LIBLNK		+=	`pkg-config cairo --libs`
+		CFLAGS		+=	`pkg-config cairo --cflags`
+		CXXFLAGS	+=	`pkg-config cairo --cflags`
+    endif
+endif
 
 ####
 # rules
