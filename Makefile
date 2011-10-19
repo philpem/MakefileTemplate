@@ -1,6 +1,6 @@
 # Phil's multiplatform makefile template
 # With auto-incrementing build number and automatic version.h generation
-# Version 1.10, 2010-02-15
+# Version 1.11, 2010-02-15
 #
 # The latest version of this Makefile can be found at http://www.philpem.me.uk/
 #
@@ -85,6 +85,7 @@
 #
 #
 # Change history:
+#   1.11- Add support for libraries which are registered with 'pkg-config'.
 #   1.10- Add Mac OS X build support
 #         Add automatic build platform identification
 #         Bugfix -- if .buildnum doesn't exist, use '0' for the build number
@@ -138,15 +139,22 @@ SRC_TYPE	=	cpp
 
 # additional object files that don't necessarily include source
 EXT_OBJ		=
-# libraries to link in -- these will be specified as "-l" parameters, the -l
-# is prepended automatically
+
+# List of libraries to link in -- these will be specified as "-l" parameters,
+# the '-l' is prepended automatically
 LIB			=
-# library paths -- where to search for the above libraries
+
+# List of libraries handled by pkg-config
+LIBPKGC		=
+
+# Library paths -- where to search for the above libraries
 LIBPATH		=
-# include paths -- where to search for #include files (in addition to the
+
+# Include paths -- where to search for #include files (in addition to the
 # standard paths
 INCPATH		=
-# garbage files that should be deleted on a 'make clean' or 'make tidy'
+
+# Garbage files which should be deleted on a 'make clean' or 'make tidy'
 GARBAGE		=
 
 # extra dependencies - files that we don't necessarily know how to build, but
@@ -211,12 +219,9 @@ endif
 ####
 # A quick sanity check on the platform type
 ####
-ifneq ($(PLATFORM),linux)
-ifneq ($(PLATFORM),win32)
-ifneq ($(PLATFORM),osx)
-    $(error Platform '$(PLATFORM)' is not supported. Supported platforms are: linux, win32, osx)
-endif
-endif
+PERMITTED_PLATFORMS=linux win32 osx
+ifeq ($(filter $(PLATFORM),$(PERMITTED_PLATFORMS)),)
+    $(error Platform '$(PLATFORM)' is not supported. Supported platforms are: $(PERMITTED_PLATFORMS))
 endif
 
 ####
@@ -362,6 +367,12 @@ DEPFILES =	$(addprefix dep/, $(addsuffix .d, $(basename $(SRC))) $(EXT_OBJ)) $(a
 LIBLNK	+=	$(addprefix -l, $(LIB))
 LIBPTH	+=	$(addprefix -L, $(LIBPATH))
 INCPTH	+=	$(addprefix -I, $(INCPATH))
+
+# Bring in libraries managed by pkg-config
+ifneq ($(strip $(LIBPKGC)),)
+    LIBLNK += $(shell pkg-config --libs $(LIBPKGC))
+    CFLAGS += $(shell pkg-config --cflags $(LIBPKGC))
+endif
 
 CPPFLAGS +=	$(INCPTH)
 
