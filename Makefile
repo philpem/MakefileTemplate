@@ -86,6 +86,9 @@
 #
 # Change history:
 #   1.11- Add support for libraries which are registered with 'pkg-config'.
+#         Removed ENABLE_GTK, ENABLE_CAIRO and ENABLE_SDL -- these can now be
+#          specified as pkg-config managed libraries (gtk+-2.0, cairo and sdl,
+#          respectively).
 #   1.10- Add Mac OS X build support
 #         Add automatic build platform identification
 #         Bugfix -- if .buildnum doesn't exist, use '0' for the build number
@@ -164,15 +167,8 @@ EXTDEP		=
 
 # Extra libraries
 # Set any of these variables to "yes" to enable, or anything else to disable
-# wxWidgets
+# --- wxWidgets ---
 ENABLE_WX	=	no
-# GTK+ widget set
-ENABLE_GTK	=	no
-# Cairo graphics library
-ENABLE_CAIRO	=	no
-# SDL: set to "yes" to enable, anything else to disable
-ENABLE_SDL	=	no
-
 # wxWidgets: list of wxWidgets libraries to enable
 # Only valid if ENABLE_WX = yes
 WX_LIBS		=	std
@@ -321,37 +317,6 @@ ifeq ($(ENABLE_WX),yes)
 	endif
 endif
 
-####
-# SDL support
-####
-ifeq ($(ENABLE_SDL),yes)
-	LIBLNK		+=	$(shell sdl-config --libs)
-	CFLAGS		+=	$(shell sdl-config --cflags)
-endif
-
-####
-# GTK support
-####
-ifeq ($(ENABLE_GTK),yes)
-	LIBLNK		+=	`pkg-config gtk+-2.0 --libs`
-	CFLAGS		+=	`pkg-config gtk+-2.0 --cflags`
-	CXXFLAGS	+=	`pkg-config gtk+-2.0 --cflags`
-endif
-
-####
-# Cairo support
-####
-ifeq ($(ENABLE_CAIRO),yes)
-    ifeq ($(PLATFORM),osx)
-		LIBLNK		+=	-L/usr/local/Cellar/cairo/1.10.2/lib -lcairo
-		CFLAGS		+=	-I/usr/local/Cellar/cairo/1.10.2/include/cairo
-		CXXFLAGS	+=	-I/usr/local/Cellar/cairo/1.10.2/include/cairo
-    else
-		LIBLNK		+=	`pkg-config cairo --libs`
-		CFLAGS		+=	`pkg-config cairo --cflags`
-		CXXFLAGS	+=	`pkg-config cairo --cflags`
-    endif
-endif
 
 ####
 # rules
@@ -372,6 +337,7 @@ INCPTH	+=	$(addprefix -I, $(INCPATH))
 ifneq ($(strip $(LIBPKGC)),)
     LIBLNK += $(shell pkg-config --libs $(LIBPKGC))
     CFLAGS += $(shell pkg-config --cflags $(LIBPKGC))
+    CXXFLAGS += $(shell pkg-config --cflags $(LIBPKGC))
 endif
 
 CPPFLAGS +=	$(INCPTH)
